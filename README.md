@@ -10,20 +10,17 @@
 
 ## Préconditions  
 - Le système de contrôle d’accès est **opérationnel**.  
-- L’utilisateur dispose d’un **badge actif ou inactif**.  
 - Le **lecteur de badge** est connecté au système.  
 
 ## Déroulement du scénario  
-1. **ETANT DONNE** un utilisateur qui présente son badge devant le lecteur  
-2. **QUAND** le système scanne et vérifie les droits d’accès du badge  
-   - **Si le badge est valide**
-     - ALORS la porte s’ouvre  
-     - ET l’accès est enregistré dans le journal du système  
-   - **Si le badge est invalide**  
-     - ALORS l’accès est refusé  
-     - ET la porte reste fermée  
-     - ET une alerte peut être envoyée si nécessaire (ex. tentative multiple)  
+1. **ETANT DONNE** un utilisateur avec un **badge valide ou invalide**  
+2. **QUAND** il présente son badge devant le lecteur  
+3. **ALORS** le système scanne et vérifie les droits d’accès du badge  
+   - **Si le badge est valide** ✅  
+     - ALORS le système envoie un message à la porte : **"Ouvrir"**  
+   - **Si le badge est invalide** ❌  
+     - ALORS le système envoie un message à la porte : **"Accès refusé"**  
 
 ## Postconditions  
-- **Cas OK** : L’utilisateur accède à la zone et l’événement est enregistré.  
-- **Cas NON** : L’accès est bloqué et un message d’erreur est généré.  
+- **Cas OK** ✅ : L’utilisateur accède à la zone et la porte s’ouvre.  
+- **Cas NON** ❌ : L’accès est bloqué et la porte reste fermée.  

@@ -1,13 +1,19 @@
+from .lecteur import Lecteur
+from .porte import Porte
+
 class ControleAcces:
-    def __init__(self):
-        self.badges_valides = {"12345", "67890", "ABCDE"}
+    def __init__(self, porte: Porte, lecteur: Lecteur, whitelist: list):
+        self.__lecteur = lecteur
+        self.__porte = porte
+        self.__whitelist = whitelist
 
-    def verifier_acces(self, badge_id):
-        if badge_id in self.badges_valides:
-            return self.envoyer_message_porte("Ouvrir")
+    def interroger_lecteur(self):
+        badge_detecte = self.__lecteur.poll()  
+        if badge_detecte is not None:
+            if badge_detecte in self.__whitelist:  
+                self.__porte.demander_ouverture()
+                print("Accès autorisé")  
+            else:
+                print("Accès refusé : Badge non autorisé")
         else:
-            return self.envoyer_message_porte("Accès refusé")
-
-    @staticmethod
-    def envoyer_message_porte(message):
-        return message
+            print("Aucun badge détecté")

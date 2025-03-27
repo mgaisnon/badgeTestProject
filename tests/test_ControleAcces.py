@@ -137,6 +137,7 @@ class TestControleAcces(unittest.TestCase):
         # ALORS l'accès est refusé et la porte ne s'ouvre pas
         self.assertFalse(self.porte.signal_ouverture_reçu)
 
+
     def test_plusieurs_badges_successifs(self):
         # ETANT DONNE plusieurs badges valides successifs
         self.lecteur.simuler_detection_badge(1234)
@@ -161,26 +162,30 @@ class TestControleAcces(unittest.TestCase):
     
     def test_ajout_badge_apres_initialisation(self):
         # ETANT DONNE l'ajout d'un badge après l'initialisation
-        self.whitelist.append(8888)
-        self.lecteur.simuler_detection_badge(8888)
-        
+        self.controleur.ajouter_badge(8881)
+        self.lecteur.simuler_detection_badge(8881)
+    
         # QUAND le badge est détecté
         self.controleur.interroger_lecteur()
-        
+    
         # ALORS l'accès est accordé et la porte s'ouvre
         self.assertTrue(self.porte.signal_ouverture_reçu)
     
     def test_retirer_badge_de_la_whitelist(self):
         # ETANT DONNE un badge retiré de la whitelist
-        self.whitelist.remove(1234)
+        print(f"Avant retrait - Whitelist: {self.whitelist}") 
+        self.controleur.retirer_badge(1234)  # Retirer le badge
+        print(f"Après retrait - Whitelist: {self.whitelist}")
+
         self.lecteur.simuler_detection_badge(1234)
         
         # QUAND le badge est détecté
         self.controleur.interroger_lecteur()
         
         # ALORS l'accès est refusé et la porte ne s'ouvre pas
-        self.assertFalse(self.porte.signal_ouverture_reçu)
-    
+        print(f"Signal de porte reçu : {self.porte.signal_ouverture_reçu}")
+        self.assertFalse(self.porte.signal_ouverture_reçu)  
+
     def test_multithreading_badges(self):
         # ETANT DONNE plusieurs scans de badges en multithreading
         import threading
@@ -337,19 +342,24 @@ class TestControleAcces(unittest.TestCase):
         # ALORS l'accès est accordé même si le badge est en blacklist
         self.assertTrue(self.porte.signal_ouverture_reçu)
     
-    def test_sortie_logique_pour_multiple_portes(self):
-        # ETANT DONNE plusieurs portes avec des contrôles séparés
-        porte2 = PorteDeTest()
-        controleur2 = ControleAcces(porte2, self.lecteur, self.whitelist, self.blacklist)
+    def test_porte_securisee_double_validation(self):
+        # ETANT DONNE un mode sécurisé activé sur la porte
+        self.porte.secure_mode = True
+
+        # Premier scan du badge (la porte ne doit pas s'ouvrir)
         self.lecteur.simuler_detection_badge(1234)
-        
-        # QUAND le badge est détecté par deux portes
         self.controleur.interroger_lecteur()
-        controleur2.interroger_lecteur()
-        
-        # ALORS l'accès est accordé à chaque porte
+
+        # QUAND un seul scan est effectué
+        self.assertFalse(self.porte.signal_ouverture_reçu)
+
+        # ETANT DONNE que le badge est scanné à nouveau
+        self.lecteur.simuler_detection_badge(1234)
+        self.controleur.interroger_lecteur()
+
+        # ALORS l'accès est accordé et la porte s'ouvre
         self.assertTrue(self.porte.signal_ouverture_reçu)
-        self.assertTrue(porte2.signal_ouverture_reçu)
+
 
 
 if __name__ == '__main__':

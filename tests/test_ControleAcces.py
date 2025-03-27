@@ -347,20 +347,19 @@ class TestControleAcces(unittest.TestCase):
         self.porte.secure_mode = True
 
         # Premier scan du badge (la porte ne doit pas s'ouvrir)
-        self.lecteur.simuler_detection_badge(1234)
-        self.controleur.interroger_lecteur()
-
-        # QUAND un seul scan est effectué
+        self._effectuer_scan_badge(1234)
         self.assertFalse(self.porte.signal_ouverture_reçu)
 
         # ETANT DONNE que le badge est scanné à nouveau
-        self.lecteur.simuler_detection_badge(1234)
-        self.controleur.interroger_lecteur()
+        self._effectuer_scan_badge(1234)
 
         # ALORS l'accès est accordé et la porte s'ouvre
         self.assertTrue(self.porte.signal_ouverture_reçu)
 
-
+    def _effectuer_scan_badge(self, badge):
+        """Méthode d'assistance pour simuler le scan du badge et interroger le lecteur"""
+        self.lecteur.simuler_detection_badge(badge)
+        self.controleur.interroger_lecteur()
 
 if __name__ == '__main__':
     unittest.main()

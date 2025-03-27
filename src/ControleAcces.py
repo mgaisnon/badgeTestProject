@@ -10,57 +10,79 @@ class ControleAcces:
         self.alarm_triggered = False
         self.badges_temporaires = set()
         self.mode_urgence = False
-        self.double_validation = {} 
+        self.double_validation = {}  # Stocke la première tentative pour une porte sécurisée
 
     def interroger_lecteur(self):
         """Gère l'interrogation du lecteur pour déterminer si l'accès est autorisé."""
-        if self.mode_urgence:
-            print("Mode urgence activé. La porte s'ouvre automatiquement.")
-            self.__porte.demander_ouverture()
-            return
-
-        badge_detecte = self.__lecteur.poll()
-        if badge_detecte is not None:
-            # Vérification du type de badge incorrect (dictionnaire)
-            if isinstance(badge_detecte, dict):
-                print(f"Accès refusé : Type de badge incorrect (dictionnaire) - {badge_detecte}")
-                return
-
-            print(f"Vérification badge {badge_detecte} dans whitelist: {badge_detecte in self.__whitelist}")
-
-            # Si le badge est sur la blacklist, l'accès est refusé
-            if badge_detecte in self.__blacklist:
-                self.historique_refus.append(badge_detecte)
-                print(f"Accès refusé : Badge {badge_detecte} sur liste noire")
-                return
-            
-            # Si le badge est dans la whitelist ou badges temporaires, on accorde l'accès
-            if badge_detecte in self.__whitelist or badge_detecte in self.badges_temporaires:
-                if self.__porte.secure_mode:
-                    # Si la porte est en mode sécurisé, vérifier la double validation
-                    if badge_detecte in self.double_validation:
-                        self.__porte.demander_ouverture()
-                        del self.double_validation[badge_detecte]
-                        print("Accès autorisé après double validation")
-                    else:
-                        self.double_validation[badge_detecte] = True
-                        print("Première validation effectuée, veuillez repasser le badge")
-                else:
-                    self.__porte.demander_ouverture()
-                    print("Accès autorisé")
-                self.historique.append(badge_detecte)
-                self.echecs_consecutifs[badge_detecte] = 0
-            else:
-                # Si le badge n'est pas dans la whitelist, l'accès est refusé
-                self.historique_refus.append(badge_detecte)
-                self.echecs_consecutifs[badge_detecte] = self.echecs_consecutifs.get(badge_detecte, 0) + 1
-                print(f"Accès refusé : Badge {badge_detecte} non autorisé.")
-                
-                if self.echecs_consecutifs[badge_detecte] >= 3:
-                    self.alarm_triggered = True
-                    print("ALERTE : Trois échecs consécutifs détectés.")
-        else:
+        badge_detecte = self.__lecteur.poll()  # Simuler la détection du badge
+        if badge_detecte is None:
             print("Aucun badge détecté")
+            return
+        
+        if self.mode_urgence:
+            self._mode_urgence()
+            return
+        
+        if self._verifier_badge_incorrect(badge_detecte):
+            return
+        
+        if self._verifier_blacklist(badge_detecte):
+            return
+        
+        if self._verifier_whitelist(badge_detecte):
+            return
+        
+        self._refuser_acces(badge_detecte)
+        
+    def _mode_urgence(self):
+        """Gère le mode urgence."""
+        print("Mode urgence activé. La porte s'ouvre automatiquement.")
+        self.__porte.demander_ouverture()
+
+    def _verifier_badge_incorrect(self, badge_detecte):
+        """Vérifie si le badge est un dictionnaire (type incorrect)."""
+        if isinstance(badge_detecte, dict):
+            print(f"Accès refusé : Type de badge incorrect (dictionnaire) - {badge_detecte}")
+            return True
+        return False
+
+    def _verifier_blacklist(self, badge_detecte):
+        """Vérifie si le badge est sur la blacklist."""
+        if badge_detecte in self.__blacklist:
+            self.historique_refus.append(badge_detecte)
+            print(f"Accès refusé : Badge {badge_detecte} sur liste noire")
+            return True
+        return False
+
+    def _verifier_whitelist(self, badge_detecte):
+        """Vérifie si le badge est dans la whitelist ou badges temporaires."""
+        print(f"Vérification badge {badge_detecte} dans whitelist: {badge_detecte in self.__whitelist}")
+        if badge_detecte in self.__whitelist or badge_detecte in self.badges_temporaires:
+            if self.__porte.secure_mode:
+                if badge_detecte in self.double_validation:
+                    self.__porte.demander_ouverture()
+                    del self.double_validation[badge_detecte]
+                    print("Accès autorisé après double validation")
+                else:
+                    self.double_validation[badge_detecte] = True
+                    print("Première validation effectuée, veuillez repasser le badge")
+            else:
+                self.__porte.demander_ouverture()
+                print("Accès autorisé")
+            self.historique.append(badge_detecte)
+            self.echecs_consecutifs[badge_detecte] = 0
+            return True
+        return False
+
+    def _refuser_acces(self, badge_detecte):
+        """Gère le refus d'accès."""
+        self.historique_refus.append(badge_detecte)
+        self.echecs_consecutifs[badge_detecte] = self.echecs_consecutifs.get(badge_detecte, 0) + 1
+        print(f"Accès refusé : Badge {badge_detecte} non autorisé.")
+        
+        if self.echecs_consecutifs[badge_detecte] >= 3:
+            self.alarm_triggered = True
+            print("ALERTE : Trois échecs consécutifs détectés.")
 
     def ajouter_badge_temporaire(self, badge, expire=False):
         """Ajoute un badge temporaire à la liste des badges temporaires."""

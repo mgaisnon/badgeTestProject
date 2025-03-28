@@ -260,38 +260,37 @@ class TestControleAcces(unittest.TestCase):
 
     def test_ajout_retirement_badge_temporaire(self):
         # ETANT DONNE un badge temporaire ajouté
-        self.controleur.ajouter_badge_temporaire(1234)
+        self.controleur.ajouter_badge_temporaire(1034)
         
         # Premier scan du badge temporaire
-        self._effectuer_scan_badge(1234)
+        self._effectuer_scan_badge(1034)
         
         # ALORS l'accès est accordé et la porte s'ouvre
         self.assertTrue(self.porte.signal_ouverture_reçu)
         
         # RETIRER le badge temporaire
-        self.controleur.badges_temporaires.remove(1234)
+        self.controleur.retirer_badge_temporaire(1034)
         
         # Réinitialiser l'état de la porte
         self.porte.signal_ouverture_reçu = False
         
         # ESSAYER de scanner le badge après l'avoir retiré
-        self._effectuer_scan_badge(1234)
+        self._effectuer_scan_badge(1034)
         
         # ALORS l'accès est refusé et la porte ne s'ouvre pas
         self.assertFalse(self.porte.signal_ouverture_reçu)
         
         # Vérification que le badge n'est plus dans les badges temporaires
-        #self.assertNotIn(1234, self.controleur.badges_temporaires)
+        self.assertNotIn(1034, self.controleur.badges_temporaires)
         
         # Ajoutons de nouveau le badge temporaire
-        #self.controleur.ajouter_badge_temporaire(1234)
+        self.controleur.ajouter_badge_temporaire(1034)
         
         # ESSAYER à nouveau de scanner le badge ajouté temporairement
-        #self._effectuer_scan_badge(1234)
+        self._effectuer_scan_badge(1034)
         
         # ALORS l'accès est de nouveau accordé et la porte s'ouvre
-        #self.assertTrue(self.porte.signal_ouverture_reçu)
-
+        self.assertTrue(self.porte.signal_ouverture_reçu)
 
 
     def test_reset_historique(self):

@@ -3,10 +3,15 @@
 ## Développeurs
 
 Paul CARION - @farkza
+
 Nicolas DAUNAC - @Farfadeli
+
 Yassin FARASSI - @yassin312
+
 Mathieu GAISNON - @mgaisnon
+
 Baptiste MANCEL - @NovemIgnotum
+
 Julie MONTOUX - @JulieMontoux
 
 ## Fonctionnalité

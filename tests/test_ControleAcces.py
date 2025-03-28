@@ -350,9 +350,9 @@ class TestControleAcces(unittest.TestCase):
         self.assertFalse(self.porte.signal_ouverture_reçu)
     
     def test_badges_temporaire_expired_et_valide(self):
-        # ETANT DONNE plusieurs badges temporaires, dont l'un a expiré
-        self.controleur.ajouter_badge_temporaire(1234)
-        self.controleur.ajouter_badge_temporaire(5678, expire=True)
+       # ETANT DONNE plusieurs badges temporaires, dont l'un a expiré
+        self.controleur.ajouter_badge_temporaire(1234)  # Badge valide
+        self.controleur.ajouter_badge_temporaire(5478, expire=True)  # Badge expiré
         
         # ESSAYER de scanner un badge temporaire valide
         self._effectuer_scan_badge(1234)
@@ -360,12 +360,17 @@ class TestControleAcces(unittest.TestCase):
         # ALORS l'accès est accordé et la porte s'ouvre
         self.assertTrue(self.porte.signal_ouverture_reçu)
         
-        # ESSAYER de scanner un badge temporaire expiré
+        # Réinitialiser l'état de la porte avant de scanner le badge expiré
         self.porte.signal_ouverture_reçu = False
-        self._effectuer_scan_badge(5678)
+        
+        # ESSAYER de scanner un badge temporaire expiré
+        self._effectuer_scan_badge(5478)
         
         # ALORS l'accès est refusé et la porte ne s'ouvre pas
         self.assertFalse(self.porte.signal_ouverture_reçu)
+
+        # Vérification que le badge expiré ne se trouve plus dans les badges temporaires
+        self.assertNotIn(5478, self.controleur.badges_temporaires)
 
     def _effectuer_scan_badge(self, badge, controleur=None):
         """Méthode d'assistance pour simuler le scan du badge et interroger le lecteur"""

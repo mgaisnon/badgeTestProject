@@ -65,10 +65,13 @@ class ControleAcces:
     def _verifier_whitelist(self, badge_detecte):
         """Vérifie si le badge est dans la whitelist ou badges temporaires."""
         print(f"Vérification badge {badge_detecte} dans whitelist: {badge_detecte in self.__whitelist}")
-        if badge_detecte in self.__whitelist or badge_detecte in self.badges_temporaires:
+        
+        if badge_detecte in self.__whitelist:
+            print(f"Le badge {badge_detecte} est dans la whitelist.")
+            
             if self.__porte.secure_mode:
                 if badge_detecte in self.double_validation:
-                    self.__porte.signal_ouverture_reçu = True  # Porte s'ouvre après double validation
+                    self.__porte.signal_ouverture_reçu = True
                     self.__porte.demander_ouverture()
                     del self.double_validation[badge_detecte]
                     print("Accès autorisé après double validation")
@@ -76,14 +79,24 @@ class ControleAcces:
                     self.double_validation[badge_detecte] = True
                     print("Première validation effectuée, veuillez repasser le badge")
             else:
-                self.__porte.signal_ouverture_reçu = True  # Accès autorisé
+                self.__porte.signal_ouverture_reçu = True
                 self.__porte.demander_ouverture()
                 print("Accès autorisé")
+            
             self.historique.append(badge_detecte)
             self.echecs_consecutifs[badge_detecte] = 0
             return True
-        else:
-            self.__porte.signal_ouverture_reçu = False  # Assurer qu'aucune ouverture de porte n'est permise
+        
+        if badge_detecte in self.badges_temporaires:
+            print(f"Le badge {badge_detecte} est temporaire et valide.")
+            self.__porte.signal_ouverture_reçu = True
+            self.__porte.demander_ouverture()
+            
+            self.historique.append(badge_detecte)
+            self.echecs_consecutifs[badge_detecte] = 0
+            return True
+        
+        self.__porte.signal_ouverture_reçu = False
         return False
 
     def _refuser_acces(self, badge_detecte):
@@ -101,6 +114,9 @@ class ControleAcces:
         """Ajoute un badge temporaire à la liste des badges temporaires."""
         if expire:
             print(f"Le badge {badge} a expiré et ne peut plus être ajouté.")
+            if badge in self.badges_temporaires:
+                self.badges_temporaires.remove(badge)
+                print(f"Badge {badge} retiré des badges temporaires.")
             return
         self.badges_temporaires.add(badge)
         print(f"Badge {badge} ajouté temporairement")

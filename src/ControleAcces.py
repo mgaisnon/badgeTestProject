@@ -14,6 +14,12 @@ class ControleAcces:
 
     def interroger_lecteur(self):
         """Gère l'interrogation du lecteur pour déterminer si l'accès est autorisé."""
+        
+        if self.alarm_triggered:
+            print("Accès refusé : alarme activée, toute tentative est bloquée.")
+            self.__porte.signal_ouverture_reçu = False
+            return
+        
         badge_detecte = self.__lecteur.poll()  # Simuler la détection du badge
         if badge_detecte is None:
             print("Aucun badge détecté")

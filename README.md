@@ -2,17 +2,12 @@
 
 ## Développeurs
 
-Paul CARION - @farkza
-
-Nicolas DAUNAC - @Farfadeli
-
-Yassin FARASSI - @yassin312
-
-Mathieu GAISNON - @mgaisnon
-
-Baptiste MANCEL - @NovemIgnotum
-
-Julie MONTOUX - @JulieMontoux
+- **Paul CARION** - @farkza
+- **Nicolas DAUNAC** - @Farfadeli
+- **Yassin FARASSI** - @yassin312
+- **Mathieu GAISNON** - @mgaisnon
+- **Baptiste MANCEL** - @NovemIgnotum
+- **Julie MONTOUX** - @JulieMontoux
 
 ## Fonctionnalité
 
@@ -21,8 +16,8 @@ Le système de contrôle d'accès par badge permet de gérer les accès à diff�
 - Si le badge est dans la whitelist, l'accès est accordé.
 - Si le badge est dans la blacklist, l'accès est refusé.
 - Si le badge n'est ni dans la whitelist ni dans la blacklist, l'accès est refusé.
-
-Le système peut également gérer des **badges temporaires** et un **mode urgence** qui permet d'ouvrir la porte sans badge.
+- **Badges temporaires** peuvent être utilisés pour donner un accès temporaire.
+- **Mode urgence** : La porte peut s'ouvrir sans badge si le mode urgence est activé.
 
 ### Fonctionnalités principales
 
@@ -242,7 +237,9 @@ Le système peut également gérer des **badges temporaires** et un **mode urgen
 
 **Description** : Vérifie le réajout d’un badge dans la whitelist après retrait.
 
-- **Scénario** : Badge `1234` retiré puis réajouté.
+- **Scénario** : Badge `1234
+
+` retiré puis réajouté.
 
 ### 36. Test de l’alarme active et de l’accès refusé
 

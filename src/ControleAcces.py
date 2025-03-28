@@ -10,7 +10,7 @@ class ControleAcces:
         self.alarm_triggered = False
         self.badges_temporaires = set()
         self.mode_urgence = False
-        self.double_validation = {}  # Stocke la première tentative pour une porte sécurisée
+        self.double_validation = {}
 
     def interroger_lecteur(self):
         """Gère l'interrogation du lecteur pour déterminer si l'accès est autorisé."""
@@ -18,7 +18,7 @@ class ControleAcces:
         if badge_detecte is None:
             print("Aucun badge détecté")
             return
-        
+
         if self.mode_urgence:
             self._mode_urgence()
             return
@@ -33,10 +33,11 @@ class ControleAcces:
             return
         
         self._refuser_acces(badge_detecte)
-        
+
     def _mode_urgence(self):
         """Gère le mode urgence."""
         print("Mode urgence activé. La porte s'ouvre automatiquement.")
+        self.__porte.signal_ouverture_reçu = True  # La porte s'ouvre automatiquement
         self.__porte.demander_ouverture()
 
     def _verifier_badge_incorrect(self, badge_detecte):
@@ -51,6 +52,7 @@ class ControleAcces:
         if badge_detecte in self.__blacklist:
             self.historique_refus.append(badge_detecte)
             print(f"Accès refusé : Badge {badge_detecte} sur liste noire")
+            self.__porte.signal_ouverture_reçu = False
             return True
         return False
 
@@ -60,6 +62,7 @@ class ControleAcces:
         if badge_detecte in self.__whitelist or badge_detecte in self.badges_temporaires:
             if self.__porte.secure_mode:
                 if badge_detecte in self.double_validation:
+                    self.__porte.signal_ouverture_reçu = True  # Porte s'ouvre après double validation
                     self.__porte.demander_ouverture()
                     del self.double_validation[badge_detecte]
                     print("Accès autorisé après double validation")
@@ -67,17 +70,21 @@ class ControleAcces:
                     self.double_validation[badge_detecte] = True
                     print("Première validation effectuée, veuillez repasser le badge")
             else:
+                self.__porte.signal_ouverture_reçu = True  # Accès autorisé
                 self.__porte.demander_ouverture()
                 print("Accès autorisé")
             self.historique.append(badge_detecte)
             self.echecs_consecutifs[badge_detecte] = 0
             return True
+        else:
+            self.__porte.signal_ouverture_reçu = False  # Assurer qu'aucune ouverture de porte n'est permise
         return False
 
     def _refuser_acces(self, badge_detecte):
         """Gère le refus d'accès."""
         self.historique_refus.append(badge_detecte)
         self.echecs_consecutifs[badge_detecte] = self.echecs_consecutifs.get(badge_detecte, 0) + 1
+        self.__porte.signal_ouverture_reçu = False  # Refus d'accès, porte ne s'ouvre pas
         print(f"Accès refusé : Badge {badge_detecte} non autorisé.")
         
         if self.echecs_consecutifs[badge_detecte] >= 3:
@@ -92,6 +99,14 @@ class ControleAcces:
         self.badges_temporaires.add(badge)
         print(f"Badge {badge} ajouté temporairement")
 
+    def retirer_badge_temporaire(self, badge):
+        """Retire un badge de la liste des badges temporaires."""
+        if badge in self.badges_temporaires:
+            self.badges_temporaires.remove(badge)
+            print(f"Badge {badge} retiré des badges temporaires.")
+        else:
+            print(f"Badge {badge} n'est pas dans les badges temporaires.")
+    
     def activer_mode_urgence(self):
         """Active le mode urgence qui permet d'ouvrir automatiquement la porte."""
         self.mode_urgence = True
